@@ -3,17 +3,22 @@
     "description": "Package to manage remote configuration parameters in PHP.",
     "type": "library",
     "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Ordnael\\Config\\": "src/"
-        }
-    },
     "authors": [
         {
             "name": "Leandro Schabarum",
             "email": "leandroschabarum.98@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "Ordnael\\Config\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ordnael\\Config\\Tests": "tests/"
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
