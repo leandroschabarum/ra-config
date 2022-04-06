@@ -19,7 +19,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Ordnael\\Config\\Tests": "tests/"
+            "Ordnael\\Config\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",
