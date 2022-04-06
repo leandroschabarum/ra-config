@@ -1,7 +1,7 @@
 # -*- MakeFile -*-
 
 SHELL=/bin/bash
-PHPUNIT=./phpunit
+PHPUNIT=phpunit
 
 test :
 	@echo "running tests..."

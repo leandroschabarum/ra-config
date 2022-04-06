@@ -4,3 +4,4 @@ vendor/*
 phpunit*
 *.phar
 *.cache
+*.out
