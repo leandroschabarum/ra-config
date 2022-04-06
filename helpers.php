@@ -1,7 +1,7 @@
 <?php
 
-if (! function_exists('missing_pecl')) {
-	function missing_pecl(string $ext) {
+if (! function_exists('missing_ext')) {
+	function missing_ext(string $ext) {
 		return ! extension_loaded($ext);
 	}
 }

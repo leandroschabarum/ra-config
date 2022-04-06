@@ -1,20 +1,54 @@
-<?php
+<?php declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit test class for required PECL extensions.
  * @test
+ * @testdox Unit test for required PECL extensions.
  */
-final class RequireExtensionsTest extends TestCase
+final class RequiredExtensionsTest extends TestCase
 {
-	public function testMongoDB()
+	const SUP_EXT = ['mongodb', 'mysqli'];
+
+	/**
+	 * Variable to store extension status.
+	 * 
+	 * @var array<string, boolean>
+	 */
+	private static $extensions;
+
+	/**
+	 * @testdox Check if database extensions are installed.
+	 */
+	public function testExtensions()
 	{
-		// code...
+		$this->assertNotEmpty(self::SUP_EXT ?? []);
+
+		foreach (self::SUP_EXT as $ext) {
+			self::$extensions[$ext] = extension_loaded($ext);
+		}
 	}
 
-	public function testMySQL()
+	/**
+	 * MUST BE THE LAST TEST TO RUN
+	 * @testdox Checks if at least one database extension is present.
+	 */
+	public function testFailure()
 	{
-		// code...
+		$header = "This test ONLY fails if there are NO available supported extensions* installed.\n";
+		$checklist = "[ Extensions checklist ]\n";
+		$footer = <<< EOF
+		\t*If the extension for your database is not marked as present
+		\tin the checklist, please install and configure it first.\n
+		EOF;
+
+		foreach (self::$extensions as $extension => $status) {
+			$emoji = chr(hexdec('E2')) . chr(hexdec('9C')) . ($status ? chr(hexdec('94')) : chr(hexdec('96')));
+			$state = $status ? "present" : "missing";
+			$checklist .= sprintf("\t- %s %s: %s\n", $emoji, $extension, $state);
+		}
+
+		echo "\n\t{$header}\n\t{$checklist}\n{$footer}";
+		$this->assertContains(true, self::$extensions);
 	}
 }
