@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class RequiredExtensionsTest extends TestCase
 {
-	const SUP_EXT = ['mongodb', 'mysqli'];
+	const SUP_EXT = ['mongodb', 'mysqli', 'redis', 'memcached'];
 
 	/**
 	 * Variable to store extension status.
