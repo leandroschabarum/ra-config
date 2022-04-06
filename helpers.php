@@ -5,3 +5,9 @@ if (! function_exists('missing_ext')) {
 		return ! extension_loaded($ext);
 	}
 }
+
+if (! function_exists('config')) {
+	function config(string $key, $default = null) {
+		//
+	}
+}

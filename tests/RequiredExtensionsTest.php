@@ -4,7 +4,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @test
- * @testdox Unit test for required PECL extensions.
+ * @testdox Unit test for required database extensions.
  */
 final class RequiredExtensionsTest extends TestCase
 {
