@@ -2,7 +2,8 @@
 
 namespace Ordnael\Configuration;
 
-use Exceptions\SchemaFieldNotFoundException;
+use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
+use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 
 /**
  * Configuration schema class.
@@ -53,6 +54,9 @@ class Schema
 		| KEY is 'ctx1.key' ........ CONTEXT is 'ctx1' ............... STORED as 'ctx1.key'
 		| KEY is 'ctx1.ctx2.key' ... CONTEXT is 'ctx1.ctx2' .......... STORED as 'ctx1.ctx2.key'
 		*/
+		/** @todo Missing InvalidSchemaKeyException class */
+		if (! self::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
 		$this->context = $key;
 		$this->key = $key;
 
@@ -61,7 +65,27 @@ class Schema
 	}
 
 	/**
-	 * Special method to retrieve object attributes.
+	 * Special method to set object attributes.
+	 * 
+	 * @param  string  $attr
+	 * @param  mixed   $val
+	 * @return mixed
+	 * 
+	 * @throws \Exceptions\SchemaFieldNotFoundException
+	 */
+	public function __set(string $attr, $val)
+	{
+		$allowed = [];
+
+		if (in_array($attr, $allowed)) {
+			$this->{$attr} = $val;
+		} else {
+			throw new SchemaFieldNotFoundException($attr);
+		}
+	}
+
+	/**
+	 * Special method to get object attributes.
 	 * 
 	 * @param  string  $attr
 	 * @return mixed
@@ -98,9 +122,20 @@ class Schema
 	 * 
 	 * @return array<int, string>
 	 */
-	public static function fields()
+	final public static function fields()
 	{
 		return array_keys(get_class_vars(self::class));
+	}
+
+	/**
+	 * Static method to validate if string is a valid key.
+	 * 
+	 * @param  string  $key
+	 * @return bool
+	 */
+	final public static function isValidKey(string $key)
+	{
+		return preg_match('%^[\w-]+((\.[\w-]+)*|[^\.\s])$%', $key) ? true : false;
 	}
 
 	/**
