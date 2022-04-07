@@ -2,6 +2,8 @@
 
 namespace Ordnael\Configuration;
 
+use Exceptions\SchemaFieldNotFoundException;
+
 /**
  * Configuration schema class.
  */
@@ -51,10 +53,11 @@ class Schema
 		| KEY is 'ctx1.key' ........ CONTEXT is 'ctx1' ............... STORED as 'ctx1.key'
 		| KEY is 'ctx1.ctx2.key' ... CONTEXT is 'ctx1.ctx2' .......... STORED as 'ctx1.ctx2.key'
 		*/
-		$this->encrypted = $encrypted;
 		$this->context = $key;
 		$this->key = $key;
+
 		$this->value = $val;
+		$this->encrypted = $encrypted;
 	}
 
 	/**
@@ -63,7 +66,7 @@ class Schema
 	 * @param  string  $attr
 	 * @return mixed
 	 * 
-	 * @throws \Exceptions\SchemaFieldNotFound
+	 * @throws \Exceptions\SchemaFieldNotFoundException
 	 */
 	public function __get(string $attr)
 	{
@@ -73,8 +76,7 @@ class Schema
 
 		if (in_array($attr, $allowed)) return $this->{$attr};
 
-		/** @todo Missing SchemaFieldNotFound Exception class! */
-		throw new Exception("'{$attr}' field is missing from configuration schema.");
+		throw new SchemaFieldNotFoundException($attr);
 	}
 
 	/**
