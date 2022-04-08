@@ -2,13 +2,17 @@
 
 namespace Ordnael\Configuration;
 
+use Ordnael\Configuration\Remote\Database;
+use Stringable;
+use Serializable;
+use JsonException;
 use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
 use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 
 /**
  * Configuration schema class.
  */
-class Schema
+class Schema implements Stringable, Serializable //extends Database implements Stringable, Serializable
 {
 	/**
 	 * Flags if configuration value is or
@@ -38,6 +42,14 @@ class Schema
 	 * @var mixed
 	 */
 	private $value;
+
+	/**
+	 * Static variable to store schema class name.
+	 * Used for testing private and protected units.
+	 * 
+	 * @var string
+	 */
+	private static $schema_class = self::class;
 	
 	/**
 	 * Configuration schema constructor.
@@ -54,12 +66,13 @@ class Schema
 		| KEY is 'ctx1.key' ........ CONTEXT is 'ctx1' ............... STORED as 'ctx1.key'
 		| KEY is 'ctx1.ctx2.key' ... CONTEXT is 'ctx1.ctx2' .......... STORED as 'ctx1.ctx2.key'
 		*/
-		/** @todo Missing InvalidSchemaKeyException class */
 		if (! self::isValidKey($key)) throw new InvalidSchemaKeyException($key);
 
-		$this->context = $key;
-		$this->key = $key;
+		preg_match('%^(?<context>(?>[\w-]+\.)*)(?<key>[\w-]+)$%', $key, $group);
 
+		if (isset($group['context'])) $this->context = trim($group['context'], '.');
+
+		$this->key = $group['key'];
 		$this->value = $val;
 		$this->encrypted = $encrypted;
 	}
@@ -104,6 +117,84 @@ class Schema
 	}
 
 	/**
+	 * Special method to represent object as string.
+	 * 
+	 * @return string
+	 */
+	public function __toString()
+	{
+		$value = $this->value(false);
+
+		if (is_array($value)) $value = json_encode($value, JSON_UNESCAPED_SLASHES);
+
+		return sprintf('[ %s ] "%s": %s (%s)', static::$schema_class,
+			"{$this->context}.{$this->key}",
+			$value ?? 'null',
+			$this->encrypted ? 'encrypted' : 'not-encrypted'
+		);
+	}
+
+	/**
+	 * Special method to serialize object to array.
+	 * 
+	 * @return array<string, mixed>
+	 */
+	public function __serialize()
+	{
+		return $this->toArray();
+	}
+
+	/**
+	 * Special method to unserialize object from array.
+	 * 
+	 * @param  array  $data
+	 * @return void
+	 */
+	public function __unserialize(array $data)
+	{
+		$this->context = $data['context'];
+		$this->encrypted = $data['encrypted'];
+		$this->key = $data['key'];
+		$this->value = $data['value'];
+	}
+
+	/**
+	 * Special method to serialize object to string.
+	 * 
+	 * @return string
+	 */
+	public function serialize()
+	{
+		$data = json_encode($this->toArray(), JSON_UNESCAPED_SLASHES);
+
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			throw new JsonException(json_last_error_msg());
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Special method to unserialize object from string.
+	 * 
+	 * @param  string  $data
+	 * @return void
+	 */
+	public function unserialize(string $data)
+	{
+		$data = json_decode($data);
+		
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			throw new JsonException(json_last_error_msg());
+		}
+
+		$this->context = $data->context;
+		$this->encrypted = $data->encrypted;
+		$this->key = $data->key;
+		$this->value = $data->value;
+	}
+
+	/**
 	 * Method to return object's configuration value.
 	 * 
 	 * @param  bool  $decrypt
@@ -118,13 +209,33 @@ class Schema
 	}
 
 	/**
+	 * Method for converting object into array.
+	 * 
+	 * @return array<string, mixed>
+	 */
+	private function toArray()
+	{
+		return [
+			'schema_class' => static::$schema_class,
+			'context' => $this->context,
+			'encrypted' => $this->encrypted,
+			'key' => $this->key,
+			'value' => $this->value(false)
+		];
+	}
+
+	/**
 	 * Returns configuration schema fields.
 	 * 
 	 * @return array<int, string>
 	 */
 	final public static function fields()
 	{
-		return array_keys(get_class_vars(self::class));
+		$schema_fields = array_keys(get_class_vars(self::class));
+		
+		if (($i = array_search('schema_class', $schema_fields)) !== false) unset($schema_fields[$i]);
+		
+		return $schema_fields;
 	}
 
 	/**
@@ -151,6 +262,6 @@ class Schema
 		/** @todo Missing encrypt() method implementation! */
 		if ($encrypted) $val = encrypt($val);
 
-		return new Schema($key, $val, $encrypted);
+		return new static::$schema_class($key, $val, $encrypted);
 	}
 }
