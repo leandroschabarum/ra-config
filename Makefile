@@ -15,3 +15,13 @@ test : $(TEST_NAMES)
 
 list :
 	@echo $(TEST_NAMES)
+
+autoload-dev :
+	composer dump-autoload --dev -o
+
+autoload :
+	composer dump-autoload --no-dev -o
+
+clean : vendor
+	@echo "Cleaning up..."
+	rm -rf $<
