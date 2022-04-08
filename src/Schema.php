@@ -3,6 +3,7 @@
 namespace Ordnael\Configuration;
 
 use Ordnael\Configuration\Remote\Database;
+use Ordnael\Configuration\Traits\HasEncryptedValues;
 use Stringable;
 use Serializable;
 use JsonException;
@@ -12,8 +13,10 @@ use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 /**
  * Configuration schema class.
  */
-class Schema implements Stringable, Serializable //extends Database implements Stringable, Serializable
+class Schema extends Database implements Stringable, Serializable
 {
+	use HasEncryptedValues;
+
 	/**
 	 * Flags if configuration value is or
 	 * should be encrypted in storage.
@@ -88,6 +91,7 @@ class Schema implements Stringable, Serializable //extends Database implements S
 	 */
 	public function __set(string $attr, $val)
 	{
+		// Attributes allowed to be set by others
 		$allowed = [];
 
 		if (in_array($attr, $allowed)) {
@@ -107,9 +111,15 @@ class Schema implements Stringable, Serializable //extends Database implements S
 	 */
 	public function __get(string $attr)
 	{
-		$allowed = self::fields();
-
-		if (($i = array_search('value', $allowed)) !== false) unset($allowed[$i]);
+		// Attributes not allowed to be retrieved by others
+		$notallowed = ['value'];
+		
+		$allowed = array_filter(
+			self::fields(),
+			function ($attr) use ($notallowed) {
+				return ! in_array($attr, $notallowed);
+			}
+		);
 
 		if (in_array($attr, $allowed)) return $this->{$attr};
 
@@ -202,8 +212,7 @@ class Schema implements Stringable, Serializable //extends Database implements S
 	 */
 	protected function value(bool $decrypt = true)
 	{
-		/** @todo Missing decrypt() method implementation! */
-		if ($decrypt && $this->encrypted) return decrypt($this->value);
+		if ($decrypt && $this->encrypted) return self::decrypt($this->value);
 
 		return $this->value;
 	}
@@ -231,9 +240,15 @@ class Schema implements Stringable, Serializable //extends Database implements S
 	 */
 	final public static function fields()
 	{
-		$schema_fields = array_keys(get_class_vars(self::class));
-		
-		if (($i = array_search('schema_class', $schema_fields)) !== false) unset($schema_fields[$i]);
+		// Properties not to be listed as schema fields
+		$remove = ['schema_class'];
+
+		$schema_fields = array_filter(
+			array_keys(get_class_vars(self::class)),
+			function ($field) use ($remove) {
+				return ! in_array($field, $remove);
+			}
+		);
 		
 		return $schema_fields;
 	}
@@ -259,8 +274,7 @@ class Schema implements Stringable, Serializable //extends Database implements S
 	 */
 	protected static function create(string $key, $val, bool $encrypted = false)
 	{
-		/** @todo Missing encrypt() method implementation! */
-		if ($encrypted) $val = encrypt($val);
+		if ($encrypted) $val = self::encrypt($val);
 
 		return new static::$schema_class($key, $val, $encrypted);
 	}
