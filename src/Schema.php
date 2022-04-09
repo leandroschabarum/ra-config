@@ -2,13 +2,15 @@
 
 namespace Ordnael\Configuration;
 
-use Ordnael\Configuration\Remote\Database;
-use Ordnael\Configuration\Traits\HasEncryptedValues;
 use Stringable;
 use Serializable;
 use JsonException;
-use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
+use Ordnael\Configuration\Remote\Database;
+use Ordnael\Configuration\Traits\HasEncryptedValues;
+use Ordnael\Configuration\Traits\HasSharedMemoryCache;
 use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
+use Ordnael\Configuration\Exceptions\SchemaFailedCacheException;
+use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
 
 /**
  * Configuration schema class.
@@ -16,6 +18,9 @@ use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 class Schema extends Database implements Stringable, Serializable
 {
 	use HasEncryptedValues;
+	use HasSharedMemoryCache;
+
+	const FILENAME_TO_IPC_KEY = __FILE__;
 
 	/**
 	 * Flags if configuration value is or
@@ -78,6 +83,21 @@ class Schema extends Database implements Stringable, Serializable
 		$this->key = $group['key'];
 		$this->value = $val;
 		$this->encrypted = $encrypted;
+		
+		if (! $this->setupCache(self::FILENAME_TO_IPC_KEY)) {
+			throw new SchemaFailedCacheException(
+				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (SETUP)"
+			);
+		}
+
+		/** @todo Remove ->purgeCache() code block after development */
+		// >>> INI
+		if (! $this->purgeCache()) {
+			throw new SchemaFailedCacheException(
+				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (PURGE)"
+			);
+		}
+		// <<< END
 	}
 
 	/**
@@ -112,16 +132,11 @@ class Schema extends Database implements Stringable, Serializable
 	public function __get(string $attr)
 	{
 		// Attributes not allowed to be retrieved by others
-		$notallowed = ['value'];
-		
-		$allowed = array_filter(
-			self::fields(),
-			function ($attr) use ($notallowed) {
-				return ! in_array($attr, $notallowed);
-			}
-		);
+		$not_allowed = ['value'];
 
-		if (in_array($attr, $allowed)) return $this->{$attr};
+		if (in_array($attr, self::fields()) && ! in_array($attr, $not_allowed)) {
+			return $this->{$attr};
+		}
 
 		throw new SchemaFieldNotFoundException($attr);
 	}
@@ -178,7 +193,7 @@ class Schema extends Database implements Stringable, Serializable
 		$data = json_encode($this->toArray(), JSON_UNESCAPED_SLASHES);
 
 		if (json_last_error() !== JSON_ERROR_NONE) {
-			throw new JsonException(json_last_error_msg());
+			throw new JsonException(json_last_error_msg(), json_last_error());
 		}
 
 		return $data;
@@ -226,8 +241,8 @@ class Schema extends Database implements Stringable, Serializable
 	{
 		return [
 			'schema_class' => static::$schema_class,
-			'context' => $this->context,
 			'encrypted' => $this->encrypted,
+			'context' => $this->context,
 			'key' => $this->key,
 			'value' => $this->value(false)
 		];
@@ -240,17 +255,12 @@ class Schema extends Database implements Stringable, Serializable
 	 */
 	final public static function fields()
 	{
-		// Properties not to be listed as schema fields
-		$remove = ['schema_class'];
-
-		$schema_fields = array_filter(
-			array_keys(get_class_vars(self::class)),
-			function ($field) use ($remove) {
-				return ! in_array($field, $remove);
-			}
-		);
-		
-		return $schema_fields;
+		return [
+			'encrypted',
+			'context',
+			'key',
+			'value'
+		];
 	}
 
 	/**
