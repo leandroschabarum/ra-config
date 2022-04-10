@@ -1,5 +1,7 @@
 <?php declare(strict_types=1);
 
+namespace Ordnael\Configuration\Tests;
+
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -48,7 +50,7 @@ final class RequiredExtensionsTest extends TestCase
 		$checklist = "[[ Extensions checklist ]]\n";
 		$footer = <<< EOF
 		\t*If the extension for your database is not marked as present
-		\tin the checklist, please install and configure it first.\n
+		\tin the checklist, please install and configure it first.\n\n
 		EOF;
 
 		foreach (self::$extensions as $extension => $status) {
