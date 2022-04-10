@@ -66,7 +66,7 @@ trait HasSharedMemoryCache
 	private function setupCache(string $filename)
 	{
 		// No SHM cache is setup is its size is null;
-		if (! self::$shm_cache_size) return true;
+		if (! static::$shm_cache_size) return true;
 
 		if (! $this->shm_cache || ! $this->shm_lock) {
 			$class = static::class;
@@ -85,8 +85,8 @@ trait HasSharedMemoryCache
 				throw new RuntimeException($message, 101);
 			}
 			
-			$this->shm_cache = shm_attach($this->ipc_key, self::$shm_cache_size, 0640);
-			$this->shm_lock = sem_get($this->ipc_key, self::$shm_lock_max_acquire, 0640);
+			$this->shm_cache = shm_attach($this->ipc_key, static::$shm_cache_size, 0640);
+			$this->shm_lock = sem_get($this->ipc_key, static::$shm_lock_max_acquire, 0640);
 
 			if (! $this->shm_cache) {
 				$message = "[ {$class} ] Unable to allocate SHM cache.";
@@ -127,6 +127,8 @@ trait HasSharedMemoryCache
 
 				throw new RuntimeException($message, 203);
 			}
+		} else {
+			$status['blocked'] = true;
 		}
 
 		if ($this->shm_cache) {
@@ -137,6 +139,8 @@ trait HasSharedMemoryCache
 
 				throw new RuntimeException($message, 202);
 			}
+		} else {
+			$status['removed'] = true;
 		}
 
 		return ($status['blocked'] && $status['removed']) ? true : false;
@@ -157,7 +161,7 @@ trait HasSharedMemoryCache
 
 			if (array_key_exists($key, $data)) {
 				$cached = $data[$key];
-				$not_expired = ($cached['created'] + self::$shm_cache_expires) > time();
+				$not_expired = ($cached['created'] + static::$shm_cache_expires) > time();
 
 				return $not_expired ? $cached['value'] : null;
 			}
@@ -231,7 +235,7 @@ trait HasSharedMemoryCache
 	private static function clearExpiredKeys(array $entries)
 	{
 		return array_filter($entries, function ($data) {
-			return ($data['created'] + self::$shm_cache_expires) > time();
+			return ($data['created'] + static::$shm_cache_expires) > time();
 		});
 	}
 }

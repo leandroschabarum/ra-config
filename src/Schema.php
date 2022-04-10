@@ -66,6 +66,9 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  mixed   $val
 	 * @param  bool    $encrypted
 	 * @return $this
+	 * 
+	 * @throws \Exceptions\InvalidSchemaKeyException
+	 * @throws \Exceptions\SchemaFailedCacheException
 	 */
 	protected function __construct(string $key, $val, bool $encrypted = false)
 	{
@@ -89,15 +92,6 @@ class Schema extends Database implements Stringable, Serializable
 				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (SETUP)"
 			);
 		}
-
-		/** @todo Remove ->purgeCache() code block after development */
-		// >>> INI
-		if (! $this->purgeCache()) {
-			throw new SchemaFailedCacheException(
-				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (PURGE)"
-			);
-		}
-		// <<< END
 	}
 
 	/**
@@ -187,6 +181,8 @@ class Schema extends Database implements Stringable, Serializable
 	 * Special method to serialize object to string.
 	 * 
 	 * @return string
+	 * 
+	 * @throws \JsonException
 	 */
 	public function serialize()
 	{
@@ -204,6 +200,8 @@ class Schema extends Database implements Stringable, Serializable
 	 * 
 	 * @param  string  $data
 	 * @return void
+	 * 
+	 * @throws \JsonException
 	 */
 	public function unserialize(string $data)
 	{
@@ -230,6 +228,22 @@ class Schema extends Database implements Stringable, Serializable
 		if ($decrypt && $this->encrypted) return self::decrypt($this->value);
 
 		return $this->value;
+	}
+
+	/**
+	 * Method for dropping SHM schema cache.
+	 * 
+	 * @return void
+	 * 
+	 * @throws \Exceptions\SchemaFailedCacheException
+	 */
+	protected function dropSchemaCache()
+	{
+		if (! $this->purgeCache()) {
+			throw new SchemaFailedCacheException(
+				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (PURGE)"
+			);
+		}
 	}
 
 	/**
