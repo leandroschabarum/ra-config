@@ -13,6 +13,8 @@ $(TEST_NAMES):
 
 test : $(TEST_NAMES)
 
+verify : RequiredExtensionsTest
+
 list :
 	@echo $(TEST_NAMES)
 
@@ -25,3 +27,4 @@ autoload :
 clean : vendor
 	@echo "Cleaning up..."
 	rm -rf $<
+	@echo "Done"
