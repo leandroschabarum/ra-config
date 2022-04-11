@@ -8,12 +8,14 @@ TEST_FILES=$(wildcard tests/*Test.php)
 TEST_NAMES=$(patsubst tests/%Test.php, %Test, $(TEST_FILES))
 
 $(TEST_NAMES):
-	@echo "### Starting $@..."
+	@echo "# Starting $@..."
 	$(PHPUNIT) $(PHPUNIT_FLAGS) tests/$@.php
 
 test : $(TEST_NAMES)
 
-list :
+verify : RequiredExtensionsTest
+
+test-list :
 	@echo $(TEST_NAMES)
 
 autoload-dev :
@@ -24,4 +26,5 @@ autoload :
 
 clean : vendor
 	@echo "Cleaning up..."
-	rm -rf $<
+	rm -rfv $<
+	@echo "Done"
