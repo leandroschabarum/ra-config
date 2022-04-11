@@ -10,6 +10,7 @@ use Ordnael\Configuration\Traits\HasEncryptedValues;
 use Ordnael\Configuration\Traits\HasSharedMemoryCache;
 use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 use Ordnael\Configuration\Exceptions\SchemaFailedCacheException;
+use Ordnael\Configuration\Exceptions\SchemaFailedEncryptionKeyException;
 use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
 
 /**
@@ -92,6 +93,14 @@ class Schema extends Database implements Stringable, Serializable
 				self::FILENAME_TO_IPC_KEY . " > {$this->ipc_key} (SETUP)"
 			);
 		}
+
+		if (! $this->setupEncryptionKey($this->getFromCache('schema-secret-key'))) {
+			throw new SchemaFailedEncryptionKeyException(
+				"Unable to set secret key on Schema object."
+			);
+		}
+
+		$this->putInCache('schema-secret-key', self::$secret_key);
 	}
 
 	/**

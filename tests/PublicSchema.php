@@ -43,8 +43,6 @@ class PublicSchema extends Schema
 		if ($this->delFromCache($rand_key)) {
 			echo "\t### Removed key {$rand_key} from SHM cache!\n";
 		}
-
-		$this->dropSchemaCache(); // Comment this line when testing SHM cache ops.
 	}
 
 	public function value($decrypt = true)

@@ -55,6 +55,7 @@ final class SchemaBuildingTest extends TestCase
 		}
 
 		$this->assertEquals($obj->value(), "MyApp");
+		$obj->dropSchemaCache();
 		echo "\n\t{$obj}\n\n"; // Visualization only
 	}
 
@@ -81,6 +82,7 @@ final class SchemaBuildingTest extends TestCase
 
 		$this->assertNotEquals($obj->value(false), "admin@app");
 		$this->assertEquals($obj->value(), "admin@app");
+		$obj->dropSchemaCache();
 		echo "\n\t{$obj}\n\n"; // Visualization only
 	}
 }
