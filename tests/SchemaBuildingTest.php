@@ -6,6 +6,7 @@ require_once __DIR__.'/../vendor/autoload.php';
 use PHPUnit\Framework\TestCase;
 use Ordnael\Configuration\Schema;
 use Ordnael\Configuration\Tests\PublicSchema;
+use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
 
 /**
  * @test
@@ -45,17 +46,34 @@ final class SchemaBuildingTest extends TestCase
 		$allowed = Schema::fields();
 
 		foreach ($allowed as $attr) {
+			// Make sure that none off the Schema fields
+			// are visible from the object's perspective
 			$this->assertObjectNotHasAttribute($attr, $obj);
 		}
 
+		// Attempting to access 'value' field should throw an exception
+		try {
+			$obj->value;
+		} catch (SchemaFieldNotFoundException $error) {
+			$emoji = chr(hexdec('E2')) . chr(hexdec('9C')) . chr(hexdec('94'));
+			echo "\t{$emoji} Caught Exception: {$error->getMessage()}";
+		} finally {
+			$emoji = chr(hexdec('E2')) . chr(hexdec('9C')) . chr(hexdec('96'));
+			$this->assertTrue(isset($error), "{$emoji} No Exception was throwned!");
+		}
+
+		// Field 'value' is unset in order to verify access to other fields
 		if (($i = array_search('value', $allowed)) !== false) unset($allowed[$i]);
 
 		foreach ($allowed as $attr) {
+			// Method overloading should allow for reading of private fields
 			$this->assertNotNull($obj->{$attr});
 		}
 
+		// Assert that 'value' field is being assigned properly
 		$this->assertEquals($obj->value(), "MyApp");
 		$obj->dropSchemaCache();
+		// Visual indication for Schema class string representation
 		echo "\n\t{$obj}\n\n"; // Visualization only
 	}
 
@@ -71,18 +89,35 @@ final class SchemaBuildingTest extends TestCase
 		$allowed = Schema::fields();
 
 		foreach ($allowed as $attr) {
+			// Make sure that none off the Schema fields
+			// are visible from the object's perspective
 			$this->assertObjectNotHasAttribute($attr, $obj);
 		}
 
+		// Attempting to access 'value' field should throw an exception
+		try {
+			$obj->value;
+		} catch (SchemaFieldNotFoundException $error) {
+			$emoji = chr(hexdec('E2')) . chr(hexdec('9C')) . chr(hexdec('94'));
+			echo "\t{$emoji} Caught Exception: {$error->getMessage()}";
+		} finally {
+			$emoji = chr(hexdec('E2')) . chr(hexdec('9C')) . chr(hexdec('96'));
+			$this->assertTrue(isset($error), "{$emoji} No Exception was throwned!");
+		}
+
+		// Field 'value' is unset in order to verify access to other fields
 		if (($i = array_search('value', $allowed)) !== false) unset($allowed[$i]);
 
 		foreach ($allowed as $attr) {
+			// Method overloading should allow for reading of private fields
 			$this->assertNotNull($obj->{$attr});
 		}
 
+		// Assert if encryption of 'value' field is working
 		$this->assertNotEquals($obj->value(false), "admin@app");
 		$this->assertEquals($obj->value(), "admin@app");
 		$obj->dropSchemaCache();
+		// Visual indication for Schema class string representation
 		echo "\n\t{$obj}\n\n"; // Visualization only
 	}
 }
