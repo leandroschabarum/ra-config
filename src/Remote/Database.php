@@ -5,7 +5,7 @@ namespace Ordnael\Configuration\Remote;
 /**
  * <description>
  */
-class Database
+class Database extends Connector
 {
 	//
 }

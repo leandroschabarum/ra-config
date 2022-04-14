@@ -1,6 +1,5 @@
 vendor
 vendor/*
-*.lock
 phpunit*
 *.phar
 *.cache
