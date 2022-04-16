@@ -13,6 +13,9 @@ trait HasEncryptedValues
 	/**
 	 * Stores secret key for encrypting and
 	 * decrypting configuration parameters.
+	 * From environment variable:
+	 * 
+	 *   RA_CONFIG_KEY_FILE='/path/to/file'
 	 * 
 	 * @var string
 	 */
