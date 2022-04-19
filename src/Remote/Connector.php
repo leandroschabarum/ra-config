@@ -92,6 +92,10 @@ class Connector
 	}
 
 	public static function connect() {
-		//
+		if (! isset(self::$connection)) {
+			self::$connection = new Connector();
+		}
+
+		return self::$connection;
 	}
 }
