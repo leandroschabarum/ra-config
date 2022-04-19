@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 namespace Ordnael\Configuration\Tests;
-require_once __DIR__.'/../vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 use Ordnael\Configuration\Schema;
