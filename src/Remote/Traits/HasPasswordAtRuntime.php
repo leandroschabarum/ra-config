@@ -2,7 +2,7 @@
 
 namespace Ordnael\Configuration\Remote\Traits;
 
-trait PasswordAtRuntime
+trait HasPasswordAtRuntime
 {
 	/**
 	 * Handles password retrieval from local environment at runtime.
@@ -15,7 +15,7 @@ trait PasswordAtRuntime
 	 */
 	private function password()
 	{
-		$key = getenv('RA_CONFIG_DB_ENCRYPTED', true) ?: null;
+		$key = getenv('RA_CONFIG_DB_PASSWORD_ENCRYPTED', true) ?: null;
 
 		// if ($key) {
 		// 	openssl_private_decrypt(

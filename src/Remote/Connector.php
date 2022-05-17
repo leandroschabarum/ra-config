@@ -4,7 +4,7 @@ namespace Ordnael\Configuration\Remote;
 
 use Ordnael\Configuration\Remote\Interfaces\ConnectorInterface;
 use Ordnael\Configuration\Remote\Traits\DetectsLostConnection;
-use Ordnael\Configuration\Remote\Traits\PasswordAtRuntime;
+use Ordnael\Configuration\Remote\Traits\HasPasswordAtRuntime;
 use Ordnael\Configuration\Remote\Traits\HasConnectionOptions;
 use Exception;
 use Throwable;
@@ -15,7 +15,7 @@ use PDO;
  */
 class Connector implements ConnectorInterface
 {
-	use DetectsLostConnection, PasswordAtRuntime, HasConnectionOptions;
+	use DetectsLostConnection, HasPasswordAtRuntime, HasConnectionOptions;
 
 	/**
 	 * Stores the Connector instance.
@@ -96,6 +96,8 @@ class Connector implements ConnectorInterface
 		$this->port = getenv('RA_CONFIG_DB_PORT', true) ?: null;
 
 		$this->connection = $this->connect();
+
+		print_r("\t# {$this->driver}: {$this->connection->getAttribute(PDO::ATTR_SERVER_VERSION)}"); // DEBUG
 	}
 
 	/**
