@@ -10,6 +10,12 @@ TEST_NAMES=$(patsubst tests/%Test.php, %Test, $(TEST_FILES))
 $(TEST_NAMES):
 	@echo "# Starting $@..."
 	export RA_CONFIG_KEY_FILE=secret.key;\
+	export RA_CONFIG_DB_DRIVER=mysql;\
+	export RA_CONFIG_DB_HOST=192.168.0.210;\
+	export RA_CONFIG_DB_PORT=3306;\
+	export RA_CONFIG_DB_DATABASE=ra_config;\
+	export RA_CONFIG_DB_USERNAME=test;\
+	export RA_CONFIG_DB_PASSWORD_ENCRYPTED=false;\
 	$(PHPUNIT) $(PHPUNIT_FLAGS) tests/$@.php;
 
 test : $(TEST_NAMES)
