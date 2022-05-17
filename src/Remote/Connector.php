@@ -96,7 +96,6 @@ class Connector implements ConnectorInterface
 		$this->port = getenv('RA_CONFIG_DB_PORT', true) ?: null;
 
 		$this->connection = $this->connect();
-		print_r("\t# {$this->driver}: {$this->version()}"); // DEBUG
 	}
 
 	/**

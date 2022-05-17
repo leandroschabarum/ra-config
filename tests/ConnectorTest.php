@@ -28,6 +28,7 @@ final class ConnectorTest extends TestCase
 	{
 		$obj = Connector::getConnector();
 		$this->assertInstanceOf(Connector::class, $obj);
+		print_r("\t# {$obj->version()}"); // DEBUG
 		$obj->close();
 	}
 }
