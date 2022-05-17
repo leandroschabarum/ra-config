@@ -150,7 +150,7 @@ trait HasSharedMemoryCache
 	 * Method to get key value from SHM cache.
 	 * 
 	 * @param  string  $key
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	protected function getFromCache(string $key)
 	{

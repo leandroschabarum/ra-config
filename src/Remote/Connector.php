@@ -6,6 +6,7 @@ use Ordnael\Configuration\Remote\Interfaces\ConnectorInterface;
 use Ordnael\Configuration\Remote\Traits\DetectsLostConnection;
 use Ordnael\Configuration\Remote\Traits\HasPasswordAtRuntime;
 use Ordnael\Configuration\Remote\Traits\HasConnectionOptions;
+use Ordnael\Configuration\Exceptions\ConnectOnOpenConnectionException;
 use Exception;
 use Throwable;
 use PDO;
@@ -117,7 +118,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @return \PDO
 	 * 
-	 * @throws \Exception
+	 * @throws \Ordnael\Configuration\Exceptions\ConnectOnOpenConnectionException
 	 */
 	public function connect()
 	{
@@ -125,7 +126,7 @@ class Connector implements ConnectorInterface
 			// Case when database driver is available to PDO
 			if (isset($this->connection) && $this->connection instanceof PDO) {
 				$this->close();
-				throw new Exception("Attempt to connect on already established connection");
+				throw new ConnectOnOpenConnectionException();
 			};
 			
 			$dsn = "{$this->driver}:host={$this->host};port={$this->port};dbname={$this->database}";
@@ -177,7 +178,7 @@ class Connector implements ConnectorInterface
 	 * @param  string      $dsn
 	 * @return \PDO
 	 * 
-	 * @throws \Exception
+	 * @throws \PDOException
 	 */
 	private function retryIfLostConnection(Throwable $e, string $dsn)
 	{

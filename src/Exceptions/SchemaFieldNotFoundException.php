@@ -13,9 +13,9 @@ class SchemaFieldNotFoundException extends Exception
 	/**
 	 * Custom exception constructor.
 	 * 
-	 * @param  string     $field
-	 * @param  int        $code
-	 * @param  Throwable  $previous
+	 * @param  string      $field
+	 * @param  int         $code
+	 * @param  \Throwable  $previous
 	 * @return $this
 	 */
 	public function __construct(string $field, int $code = 0, Throwable $previous = null)

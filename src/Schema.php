@@ -68,8 +68,8 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  bool    $encrypted
 	 * @return $this
 	 * 
-	 * @throws \Exceptions\InvalidSchemaKeyException
-	 * @throws \Exceptions\SchemaFailedCacheException
+	 * @throws \Ordnael\Configuration\Exceptions\InvalidSchemaKeyException
+	 * @throws \Ordnael\Configuration\Exceptions\SchemaFailedCacheException
 	 */
 	protected function __construct(string $key, $val, bool $encrypted = false)
 	{
@@ -110,7 +110,7 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  mixed   $val
 	 * @return mixed
 	 * 
-	 * @throws \Exceptions\SchemaFieldNotFoundException
+	 * @throws \Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException
 	 */
 	public function __set(string $attr, $val)
 	{
@@ -130,7 +130,7 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  string  $attr
 	 * @return mixed
 	 * 
-	 * @throws \Exceptions\SchemaFieldNotFoundException
+	 * @throws \Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException
 	 */
 	public function __get(string $attr)
 	{
@@ -217,7 +217,7 @@ class Schema extends Database implements Stringable, Serializable
 		$data = json_decode($data);
 		
 		if (json_last_error() !== JSON_ERROR_NONE) {
-			throw new JsonException(json_last_error_msg());
+			throw new JsonException(json_last_error_msg(), json_last_error());
 		}
 
 		$this->context = $data->context;
@@ -244,7 +244,7 @@ class Schema extends Database implements Stringable, Serializable
 	 * 
 	 * @return void
 	 * 
-	 * @throws \Exceptions\SchemaFailedCacheException
+	 * @throws \Ordnael\Configuration\Exceptions\SchemaFailedCacheException
 	 */
 	protected function dropSchemaCache()
 	{
@@ -303,7 +303,7 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  string  $key
 	 * @param  mixed   $val
 	 * @param  bool    $encrypted
-	 * @return \Schema
+	 * @return \Ordnael\Configuration\Schema
 	 */
 	protected static function create(string $key, $val, bool $encrypted = false)
 	{

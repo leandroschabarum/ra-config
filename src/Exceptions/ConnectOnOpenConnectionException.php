@@ -6,21 +6,21 @@ use Exception;
 use Throwable;
 
 /**
- * Exception class for invalid schema keys.
+ * Exception class for not found schema fields.
  */
-class InvalidSchemaKeyException extends Exception
+class ConnectOnOpenConnectionException extends Exception
 {
 	/**
 	 * Custom exception constructor.
 	 * 
-	 * @param  string      $key
+	 * @param  string      $text
 	 * @param  int         $code
 	 * @param  \Throwable  $previous
 	 * @return $this
 	 */
-	public function __construct(string $key, int $code = 0, Throwable $previous = null)
+	public function __construct(string $text = null, int $code = 0, Throwable $previous = null)
 	{
-		$message = "Key '{$key}' is not valid.";
+		$message = "Attempt to connect on already established connection.";
 		parent::__construct($message, $code, $previous);
 	}
 
@@ -31,3 +31,4 @@ class InvalidSchemaKeyException extends Exception
 		return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
 	}
 }
+
