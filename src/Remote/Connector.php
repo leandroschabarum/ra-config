@@ -96,8 +96,7 @@ class Connector implements ConnectorInterface
 		$this->port = getenv('RA_CONFIG_DB_PORT', true) ?: null;
 
 		$this->connection = $this->connect();
-
-		print_r("\t# {$this->driver}: {$this->connection->getAttribute(PDO::ATTR_SERVER_VERSION)}"); // DEBUG
+		print_r("\t# {$this->driver}: {$this->version()}"); // DEBUG
 	}
 
 	/**
@@ -123,17 +122,20 @@ class Connector implements ConnectorInterface
 	 */
 	public function connect()
 	{
-		if (isset($this->connection) && $this->connection instanceof PDO) {
-			$this->close();
-			throw new Exception("Attempt to connect on already established connection");
-		};
-		
-		$dsn = "{$this->driver}:host={$this->host};port={$this->port};dbname={$this->database}";
-		
-		try {
-			return new PDO($dsn, $this->username, $this->password(), $this->getOptions());
-		} catch (Exception $e) {
-			return $this->retryIfLostConnection($e, $dsn);
+		if (in_array($this->driver, PDO::getAvailableDrivers())) {
+			// Case when database driver is available to PDO
+			if (isset($this->connection) && $this->connection instanceof PDO) {
+				$this->close();
+				throw new Exception("Attempt to connect on already established connection");
+			};
+			
+			$dsn = "{$this->driver}:host={$this->host};port={$this->port};dbname={$this->database}";
+			
+			try {
+				return new PDO($dsn, $this->username, $this->password(), $this->getOptions($this->driver));
+			} catch (Exception $e) {
+				return $this->retryIfLostConnection($e, $dsn);
+			}
 		}
 	}
 
@@ -144,7 +146,29 @@ class Connector implements ConnectorInterface
 	 */
 	public function close()
 	{
-		$this->connection = null;
+		// Guard to resolve undefined connections
+		if (! isset($this->connection)) return null;
+
+		if ($this->connection instanceof PDO) {
+			// Close underlying connection established with PDO
+			$this->connection = null;
+		}
+	}
+
+	/**
+	 * Retrieve database server version.
+	 * 
+	 * @return string|null
+	 */
+	public function version()
+	{
+		// Guard to resolve undefined connections
+		if (! isset($this->connection)) return null;
+
+		if ($this->connection instanceof PDO) {
+			// Get server version from underlying PDO connection
+			return $this->connection->getAttribute(PDO::ATTR_SERVER_VERSION);
+		}
 	}
 
 	/**
@@ -158,10 +182,12 @@ class Connector implements ConnectorInterface
 	 */
 	private function retryIfLostConnection(Throwable $e, string $dsn)
 	{
-		if ($this->isLostConnection($e)) {
-			return new PDO($dsn, $this->username, $this->password(), $this->getOptions());
-		}
+		// Guard to resolve exceptions that are not related to lost connections
+		if (! $this->isLostConnection($e)) throw $e;
 
-		throw $e;
+		if (in_array($this->driver, PDO::getAvailableDrivers())) {
+			// Case when connection was lost and database driver is available to PDO
+			return new PDO($dsn, $this->username, $this->password(), $this->getOptions($this->driver));
+		}
 	}
 }

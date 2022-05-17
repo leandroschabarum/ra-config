@@ -32,14 +32,16 @@ trait HasConnectionOptions
 		$driver = strtoupper($driver);
 
 		switch ($driver) {
+			case 'MYSQL':
+				return $this->options['DEFAULT'];
+
 			case 'PGSQL':
 			case 'SQLITE':
 			case 'SQLSRV':
 				// code...
 				break;
-			
-			default:
-				return $this->options[$driver] ?? [];
 		}
+
+		return $this->options[$driver] ?? [];
 	}
 }
