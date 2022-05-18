@@ -20,7 +20,7 @@ class UnavailableConnectionException extends Exception
 	 */
 	public function __construct(string $text = null, int $code = 0, Throwable $previous = null)
 	{
-		$message = "Connection is not available or undefined.";
+		$message = "Connection is not available, closed or undefined.";
 		parent::__construct($message, $code, $previous);
 	}
 

@@ -4,7 +4,9 @@ namespace Ordnael\Configuration\Remote;
 
 use Ordnael\Configuration\Remote\Interfaces\CrudInterface;
 use Ordnael\Configuration\Remote\Traits\HasQueries;
+use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 use Ordnael\Configuration\Schema;
+use PDO;
 
 /**
  * Database class for executing configuration operations.
@@ -23,14 +25,16 @@ class Database extends Connector implements CrudInterface
 	 */
 	public static function select(string $key)
 	{
-		$query = 'SELECT * FROM :from WHERE key = :key';
-		$c = Connector::getConnector();
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
 
-		$c->connection()->prepare($query);
-		$c->connection()->bindParam(':from', self::from(), PDO::PARAM_STR);
-		$c->connection()->bindParam(':key', $key, PDO::PARAM_STR);
+		$statement = sprintf("SELECT * FROM %s WHERE 'key' = '%s';", self::from(), $key);
+		
+		$db = self::getConnector();
+		$result = $db->connection()->query($statement)->fetchAll(PDO::FETCH_NUM);
+		$db->close();
 
-		$c->connection()->execute();
+		// Convert to Schema object
+		return $result;
 	}
 
 	/**

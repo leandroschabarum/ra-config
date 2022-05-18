@@ -11,7 +11,9 @@ trait HasQueries
 	 */
 	public static function from()
 	{
-		$table = defined('TABLE') ? self::TABLE : 'configuration';
+		// If TABLE constant is defined in the class
+		// use it as the configuration table name
+		$table = defined('self::TABLE') ? self::TABLE : 'configuration';
 		$database = getenv('RA_CONFIG_DB_DATABASE', true) ?: null;
 
 		return $database ? "{$database}.{$table}" : $table;

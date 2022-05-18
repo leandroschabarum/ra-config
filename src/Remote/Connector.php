@@ -105,7 +105,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @return \Ordnael\Configuration\Remote\Connector
 	 */
-	public static function getConnector()
+	final public static function getConnector()
 	{
 		if (! isset(self::$connector) || ! self::$connector instanceof Connector) {
 			self::$connector = new Connector();
@@ -156,7 +156,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @throws \Ordnael\Configuration\Exceptions\ConnectOnOpenConnectionException
 	 */
-	public function connect()
+	final public function connect()
 	{
 		if (in_array($this->driver, PDO::getAvailableDrivers())) {
 			// Case when database driver is available to PDO
@@ -180,7 +180,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @return void
 	 */
-	public function close()
+	final public function close()
 	{
 		// Guard to resolve undefined connections
 		if (! isset($this->connection)) return null;
