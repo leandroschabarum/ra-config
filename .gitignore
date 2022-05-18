@@ -1,7 +1,50 @@
 vendor
 vendor/*
+/phpunit.xml
 phpunit*
+.DS_Store
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packaged/Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Text editor files
+*.sublime-project
+*.sublime-workspace
+*.komodoproject
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+/.idea
+/.vscode
+
+# Cache and other user created files
+.cache/
+*.bak
+*.backup
+*.orig
+*.local
+*.rdb
+*.db
+*.csv
+*.json
+*.log
 *.phar
 *.cache
 *.out
 *.key
+*.env
