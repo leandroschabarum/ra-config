@@ -7,6 +7,7 @@ use Ordnael\Configuration\Remote\Traits\DetectsLostConnection;
 use Ordnael\Configuration\Remote\Traits\HasPasswordAtRuntime;
 use Ordnael\Configuration\Remote\Traits\HasConnectionOptions;
 use Ordnael\Configuration\Exceptions\ConnectOnOpenConnectionException;
+use Ordnael\Configuration\Exceptions\UnavailableConnectionException;
 use Exception;
 use Throwable;
 use PDO;
@@ -114,6 +115,41 @@ class Connector implements ConnectorInterface
 	}
 
 	/**
+	 * Handle connection exceptions.
+	 * 
+	 * @param  \Throwable  $e
+	 * @param  string      $dsn
+	 * @return \PDO
+	 * 
+	 * @throws \PDOException
+	 */
+	private function retryIfLostConnection(Throwable $e, string $dsn)
+	{
+		// Guard to resolve exceptions that are not related to lost connections
+		if (! $this->isLostConnection($e)) throw $e;
+
+		if (in_array($this->driver, PDO::getAvailableDrivers())) {
+			// Case when connection was lost and database driver is available to PDO
+			return new PDO($dsn, $this->username, $this->password(), $this->getOptions($this->driver));
+		}
+	}
+
+	/**
+	 * Access underlying connection object.
+	 * 
+	 * @return \PDO
+	 * 
+	 * @throws \Exception
+	 */
+	protected function connection()
+	{
+		// Guard to resolve undefined connections
+		if (! isset($this->connection)) throw new UnavailableConnectionException();
+		
+		return $this->connection;
+	}
+
+	/**
 	 * Connect to the database.
 	 * 
 	 * @return \PDO
@@ -168,26 +204,6 @@ class Connector implements ConnectorInterface
 		if ($this->connection instanceof PDO) {
 			// Get server version from underlying PDO connection
 			return $this->connection->getAttribute(PDO::ATTR_SERVER_VERSION);
-		}
-	}
-
-	/**
-	 * Handle connection exceptions.
-	 * 
-	 * @param  \Throwable  $e
-	 * @param  string      $dsn
-	 * @return \PDO
-	 * 
-	 * @throws \PDOException
-	 */
-	private function retryIfLostConnection(Throwable $e, string $dsn)
-	{
-		// Guard to resolve exceptions that are not related to lost connections
-		if (! $this->isLostConnection($e)) throw $e;
-
-		if (in_array($this->driver, PDO::getAvailableDrivers())) {
-			// Case when connection was lost and database driver is available to PDO
-			return new PDO($dsn, $this->username, $this->password(), $this->getOptions($this->driver));
 		}
 	}
 }

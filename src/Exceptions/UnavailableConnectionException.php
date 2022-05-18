@@ -6,9 +6,9 @@ use Exception;
 use Throwable;
 
 /**
- * Exception class for trying to connect on an already established connection.
+ * Exception class for unavailable connection.
  */
-class ConnectOnOpenConnectionException extends Exception
+class UnavailableConnectionException extends Exception
 {
 	/**
 	 * Custom exception constructor.
@@ -20,7 +20,7 @@ class ConnectOnOpenConnectionException extends Exception
 	 */
 	public function __construct(string $text = null, int $code = 0, Throwable $previous = null)
 	{
-		$message = "Attempt to connect on already established connection.";
+		$message = "Connection is not available or undefined.";
 		parent::__construct($message, $code, $previous);
 	}
 

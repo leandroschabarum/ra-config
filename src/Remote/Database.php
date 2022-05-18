@@ -3,6 +3,7 @@
 namespace Ordnael\Configuration\Remote;
 
 use Ordnael\Configuration\Remote\Interfaces\CrudInterface;
+use Ordnael\Configuration\Remote\Traits\HasQueries;
 use Ordnael\Configuration\Schema;
 
 /**
@@ -10,12 +11,9 @@ use Ordnael\Configuration\Schema;
  */
 class Database extends Connector implements CrudInterface
 {
-	/**
-	 * Holds the name of the database table.
-	 * 
-	 * @var string
-	 */
-	protected $table = 'config';
+	use HasQueries;
+
+	const TABLE = 'config';
 
 	/**
 	 * Read configuration key.
@@ -23,9 +21,16 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return \Ordnael\Configuration\Schema|null
 	 */
-	public function select(string $key)
+	public static function select(string $key)
 	{
-		//
+		$query = 'SELECT * FROM :from WHERE key = :key';
+		$c = Connector::getConnector();
+
+		$c->connection()->prepare($query);
+		$c->connection()->bindParam(':from', self::from(), PDO::PARAM_STR);
+		$c->connection()->bindParam(':key', $key, PDO::PARAM_STR);
+
+		$c->connection()->execute();
 	}
 
 	/**
@@ -34,7 +39,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return \Ordnael\Configuration\Schema|null
 	 */
-	public function insert(string $key, $value)
+	public static function insert(string $key, $value)
 	{
 		//
 	}
@@ -45,7 +50,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return bool
 	 */
-	public function update(string $key, $value)
+	public static function update(string $key, $value)
 	{
 		//
 	}
@@ -56,7 +61,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return bool
 	 */
-	public function remove(string $key)
+	public static function remove(string $key)
 	{
 		//
 	}
