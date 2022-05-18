@@ -17,6 +17,7 @@ trait HasPasswordAtRuntime
 	{
 		$key = getenv('RA_CONFIG_DB_PASSWORD_ENCRYPTED', true) ?: null;
 
+		/** @todo Implement password decryption from private key */
 		// if ($key) {
 		// 	openssl_private_decrypt(
 		// 		getenv('RA_CONFIG_DB_PASSWORD', true) ?: null,
