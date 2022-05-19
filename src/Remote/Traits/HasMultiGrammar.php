@@ -77,4 +77,27 @@ trait HasMultiGrammar
 
 		return $statement;
 	}
+
+	/**
+	 * SQLite create table statement.
+	 * 
+	 * @param  string  $name
+	 * @param  bool    $fresh
+	 * @return string
+	 */
+	protected static function createSqliteTableStatement(string $name, bool $fresh = false)
+	{
+		$statement = $fresh ? "DROP TABLE IF EXISTS `{$name}`;\n" : "";
+		
+		$statement .= <<<EOF
+		CREATE TABLE IF NOT EXISTS \"{$name}\" (
+			\"id\" INTEGER PRIMARY KEY,
+			\"key\" TEXT NOT NULL UNIQUE,
+			\"value\" TEXT,
+			\"encrypted\" INTEGER DEFAULT '0' CHECK( \"encrypted\" = '0' OR \"encrypted\" = '1')
+		);
+		EOF;
+
+		return $statement;
+	}
 }

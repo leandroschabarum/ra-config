@@ -16,9 +16,12 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseMigration()
 	{
-		$this->assertTrue(true); // DEBUG
-		$ok = Database::migrate(true);
-		var_dump($ok); // DEBUG
+		$db = new Database();
+
+		$ok = $db->migrate(true);
+		$db->close();
+
+		$this->assertTrue($ok);
 	}
 
 	/**
@@ -27,7 +30,11 @@ final class DatabaseTest extends TestCase
 	public function testDatabaseSelect()
 	{
 		$this->assertTrue(true); // DEBUG
-		$data = Database::select('app.name');
+		$db = new Database();
+		
+		$data = $db->select('app.name');
+		$db->close();
+
 		var_dump($data); // DEBUG
 	}
 }

@@ -7,6 +7,7 @@ use Ordnael\Configuration\Remote\Traits\HasQueries;
 use Ordnael\Configuration\Remote\Traits\HasMultiGrammar;
 use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 use Ordnael\Configuration\Schema;
+use Exception;
 use PDO;
 
 /**
@@ -14,26 +15,58 @@ use PDO;
  */
 class Database extends Connector implements CrudInterface
 {
-	use HasQueries, HasMultiGrammar;
+	use HasQueries;
+	use HasMultiGrammar;
 
 	const TABLE = 'config';
+
+	/**
+	 * Database constructor.
+	 * 
+	 * @return $this
+	 */
+	public function __construct()
+	{
+		$this->type = getenv('RA_CONFIG_DB_DRIVER', true) ?: null;
+		$this->table = self::from();
+	}
 
 	/**
 	 * Migration method for database setup.
 	 * 
 	 * @param  bool  $fresh
 	 * @return bool
+	 * 
+	 * @throws \Exception
 	 */
-	public static function migrate(bool $fresh = false)
+	public function migrate(bool $fresh = false)
 	{
-		$statement = self::createMySqlTableStatement(self::from(), $fresh);
-		print_r($statement); // DEBUG
-		
-		$db = self::getConnector();
-		$ok = $db->connection()->exec($statement);
-		$db->close();
+		switch ($this->type) {
+			case 'mysql':
+			case 'mariadb':
+				$statement = self::createMySqlTableStatement($this->table, $fresh);
+				break;
 
-		return $ok;
+			case 'pgsql':
+				$statement = self::createPostgreSqlTableStatement($this->table, $fresh);
+				break;
+
+			case 'sqlsrv':
+				$statement = self::createSqlServerTableStatement($this->table, $fresh);
+				break;
+
+			case 'sqlite':
+				$statement = self::createSqliteTableStatement($this->table, $fresh);
+				break;
+			
+			default:
+				$statement = false;
+		}
+
+		print_r($statement); // DEBUG
+		if ($statement) return self::getConnector()->connection()->exec($statement) !== false;
+
+		throw new Exception("Unable to process migration statement for {$this->type}.");
 	}
 
 	/**
@@ -42,15 +75,13 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return \Ordnael\Configuration\Schema|null
 	 */
-	public static function select(string $key)
+	public function select(string $key)
 	{
 		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
 
-		$statement = sprintf("SELECT * FROM %s WHERE 'key' = '%s';", self::from(), $key);
-		
-		$db = self::getConnector();
-		$result = $db->connection()->query($statement)->fetchAll(PDO::FETCH_NUM);
-		$db->close();
+		$statement = sprintf("SELECT * FROM %s WHERE 'key' = '%s';", $this->table, $key);
+
+		$result = self::getConnector()->connection()->query($statement)->fetchAll(PDO::FETCH_NUM);
 
 		// Convert to Schema object
 		return $result;
@@ -62,7 +93,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return \Ordnael\Configuration\Schema|null
 	 */
-	public static function insert(string $key, $value)
+	public function insert(string $key, $value)
 	{
 		//
 	}
@@ -73,7 +104,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return bool
 	 */
-	public static function update(string $key, $value)
+	public function update(string $key, $value)
 	{
 		//
 	}
@@ -84,7 +115,7 @@ class Database extends Connector implements CrudInterface
 	 * @param  string  $key
 	 * @return bool
 	 */
-	public static function remove(string $key)
+	public function remove(string $key)
 	{
 		//
 	}

@@ -17,7 +17,9 @@ use PDO;
  */
 class Connector implements ConnectorInterface
 {
-	use DetectsLostConnection, HasPasswordAtRuntime, HasConnectionOptions;
+	use DetectsLostConnection;
+	use HasPasswordAtRuntime;
+	use HasConnectionOptions;
 
 	/**
 	 * Stores the Connector instance.
@@ -57,7 +59,7 @@ class Connector implements ConnectorInterface
 	 * Stores database driver information.
 	 * From environment variable:
 	 * 
-	 *   RA_CONFIG_DB_DRIVER='mysql|pgsql|sqlite|sqlsrv|mongodb|redis|memcache|memcached'
+	 *   RA_CONFIG_DB_DRIVER='mysql|pgsql|mariadb|sqlite|sqlsrv|mongodb|redis|memcache|memcached'
 	 * 
 	 * @var string
 	 */
@@ -101,12 +103,32 @@ class Connector implements ConnectorInterface
 	}
 
 	/**
+	 * Special method for setting Connector attributes.
+	 * 
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function __set(string $key, $value)
+	{
+		//
+	}
+
+	/**
 	 * Get the database connector instance.
 	 * 
+	 * @param  bool  $reset
 	 * @return \Ordnael\Configuration\Remote\Connector
 	 */
-	final public static function getConnector()
+	final public static function getConnector(bool $reset = false)
 	{
+		if ($reset) {
+			// Option to reset underlying connection
+			// before returning Connector instance
+			self::$connector?->close();
+			self::$connector = null;
+		}
+
 		if (! isset(self::$connector) || ! self::$connector instanceof Connector) {
 			self::$connector = new Connector();
 		}
@@ -196,7 +218,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @return string|null
 	 */
-	public function version()
+	final public function version()
 	{
 		// Guard to resolve undefined connections
 		if (! isset($this->connection)) return null;
