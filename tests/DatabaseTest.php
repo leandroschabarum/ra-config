@@ -12,12 +12,22 @@ use Ordnael\Configuration\Remote\Database;
 final class DatabaseTest extends TestCase
 {
 	/**
+	 * @testdox Database has migrate operation.
+	 */
+	public function testDatabaseMigration()
+	{
+		$this->assertTrue(true); // DEBUG
+		$ok = Database::migrate(true);
+		var_dump($ok); // DEBUG
+	}
+
+	/**
 	 * @testdox Database can select data.
 	 */
 	public function testDatabaseSelect()
 	{
-		$data = Database::select('app.name');
-		$var_dump($data); // DEBUG
 		$this->assertTrue(true); // DEBUG
+		$data = Database::select('app.name');
+		var_dump($data); // DEBUG
 	}
 }
