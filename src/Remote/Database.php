@@ -4,6 +4,7 @@ namespace Ordnael\Configuration\Remote;
 
 use Ordnael\Configuration\Remote\Interfaces\CrudInterface;
 use Ordnael\Configuration\Remote\Traits\HasQueries;
+use Ordnael\Configuration\Remote\Traits\HasQueryHistory;
 use Ordnael\Configuration\Remote\Traits\HasMultiGrammar;
 use Ordnael\Configuration\Exceptions\InvalidSchemaKeyException;
 use Ordnael\Configuration\Schema;
@@ -16,8 +17,12 @@ use PDO;
 class Database extends Connector implements CrudInterface
 {
 	use HasQueries;
+	use HasQueryHistory;
 	use HasMultiGrammar;
 
+	/**
+	 * Default name for the configuration database table.
+	 */
 	const TABLE = 'config';
 
 	/**
@@ -27,7 +32,7 @@ class Database extends Connector implements CrudInterface
 	 */
 	public function __construct()
 	{
-		$this->type = getenv('RA_CONFIG_DB_DRIVER', true) ?: null;
+		$this->type = self::getConnector()->driver;
 		$this->table = self::from();
 	}
 
@@ -63,8 +68,8 @@ class Database extends Connector implements CrudInterface
 				$statement = false;
 		}
 
-		print_r($statement); // DEBUG
-		if ($statement) return self::getConnector()->connection()->exec($statement) !== false;
+		if ($statement) return self::getConnector()->connection()
+			->exec(self::keepHistory($statement)) !== false;
 
 		throw new Exception("Unable to process migration statement for {$this->type}.");
 	}
@@ -81,7 +86,8 @@ class Database extends Connector implements CrudInterface
 
 		$statement = sprintf("SELECT * FROM %s WHERE 'key' = '%s';", $this->table, $key);
 
-		$result = self::getConnector()->connection()->query($statement)->fetchAll(PDO::FETCH_NUM);
+		$result = self::getConnector()->connection()
+		->query(self::keepHistory($statement))->fetchAll(PDO::FETCH_NUM);
 
 		// Convert to Schema object
 		return $result;

@@ -36,6 +36,13 @@ class Connector implements ConnectorInterface
 	private $connection;
 
 	/**
+	 * Stores custom attributes for the object.
+	 * 
+	 * @var array<string, mixed>
+	 */
+	private $attributes = [];
+
+	/**
 	 * Stores database username information.
 	 * From environment variable:
 	 * 
@@ -103,7 +110,7 @@ class Connector implements ConnectorInterface
 	}
 
 	/**
-	 * Special method for setting Connector attributes.
+	 * Special method for setting custom attributes.
 	 * 
 	 * @param  string  $key
 	 * @param  mixed   $value
@@ -111,7 +118,18 @@ class Connector implements ConnectorInterface
 	 */
 	public function __set(string $key, $value)
 	{
-		//
+		$this->attributes[$key] = $value;
+	}
+
+	/**
+	 * Special method for retrieving custom attributes.
+	 * 
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function __get(string $key)
+	{
+		return $this->attributes[$key] ?? null;
 	}
 
 	/**

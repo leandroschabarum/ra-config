@@ -22,6 +22,7 @@ final class DatabaseTest extends TestCase
 		$db->close();
 
 		$this->assertTrue($ok);
+		var_dump(Database::getHistory()); // DEBUG
 	}
 
 	/**
@@ -36,5 +37,6 @@ final class DatabaseTest extends TestCase
 		$db->close();
 
 		var_dump($data); // DEBUG
+		var_dump(Database::getHistory()); // DEBUG
 	}
 }
