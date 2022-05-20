@@ -4,6 +4,7 @@ namespace Ordnael\Configuration\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Ordnael\Configuration\Remote\Database;
+use Ordnael\Configuration\Schema;
 
 /**
  * @test
@@ -21,8 +22,21 @@ final class DatabaseTest extends TestCase
 		$ok = $db->migrate(true);
 		$db->close();
 
+		$this->assertIsBool($ok);
 		$this->assertTrue($ok);
-		var_dump(Database::getHistory()); // DEBUG
+	}
+
+	/**
+	 * @testdox Database can insert data.
+	 */
+	public function testDatabaseInsert()
+	{
+		$db = new Database();
+		
+		$id = $db->insert('app.name', ['x' => 10, 'y' => 17]);
+		$db->close();
+
+		$this->assertIsInt($id);
 	}
 
 	/**
@@ -30,13 +44,36 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseSelect()
 	{
-		$this->assertTrue(true); // DEBUG
 		$db = new Database();
 		
 		$data = $db->select('app.name');
 		$db->close();
 
-		var_dump($data); // DEBUG
-		var_dump(Database::getHistory()); // DEBUG
+		$this->assertInstanceOf(Schema::class, $data);
+		echo "\n\t{$data}\n\n"; // Visualization only
+	}
+
+	/**
+	 * @testdox Database can remove data.
+	 */
+	public function testDatabaseRemove()
+	{
+		$db = new Database();
+		
+		$ok = $db->remove('app.name');
+		$db->close();
+
+		$this->assertIsBool($ok);
+		$this->assertTrue($ok);
+	}
+
+	/**
+	 * @testdox Database has query history.
+	 */
+	public function testDatabaseQueryHistory()
+	{
+		$this->assertNotEmpty(Database::getHistory());
+
+		print_r("\n" . implode("\n\n", Database::getHistory()));
 	}
 }

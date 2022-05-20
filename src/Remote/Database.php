@@ -33,7 +33,7 @@ class Database extends Connector implements CrudInterface
 	public function __construct()
 	{
 		$this->type = self::getConnector()->driver;
-		$this->table = self::from();
+		$this->table = self::from(true);
 	}
 
 	/**
@@ -84,13 +84,13 @@ class Database extends Connector implements CrudInterface
 	{
 		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
 
-		$statement = sprintf("SELECT * FROM %s WHERE 'key' = '%s';", $this->table, $key);
+		$statement = "SELECT `key`, `value`, `encrypted` FROM {$this->table} WHERE `key` = '{$key}';";
 
 		$result = self::getConnector()->connection()
-		->query(self::keepHistory($statement))->fetchAll(PDO::FETCH_NUM);
+		->query(self::keepHistory($statement))->fetch(PDO::FETCH_NUM);
 
 		// Convert to Schema object
-		return $result;
+		return ! empty($result) ? Schema::create(...$result) : null;
 	}
 
 	/**
@@ -101,7 +101,38 @@ class Database extends Connector implements CrudInterface
 	 */
 	public function insert(string $key, $value)
 	{
-		//
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
+		switch (gettype($value)) {
+			case 'string':
+			case 'integer':
+			case 'double':
+				break;
+
+			case 'NULL':
+				$value = 'NULL';
+				break;
+
+			case 'boolean':
+				$value = $value ? '1' : '0';
+				break;
+
+			case 'array':
+				$value = json_encode($value);
+				break;
+			
+			default:
+				// code...
+				break;
+		}
+
+		$statement = "INSERT INTO {$this->table} (`key`, `value`, `encrypted`) VALUES ('{$key}', '{$value}', '0');";
+
+		if (self::getConnector()->connection()->exec(self::keepHistory($statement)) !== false) {
+			return (int) self::getConnector()->connection()->lastInsertId('id');
+		}
+
+		return false;
 	}
 
 	/**
@@ -123,6 +154,11 @@ class Database extends Connector implements CrudInterface
 	 */
 	public function remove(string $key)
 	{
-		//
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
+		$statement = "DELETE FROM {$this->table} WHERE `key` = '{$key}';";
+
+		return self::getConnector()->connection()
+		->exec(self::keepHistory($statement)) !== false;
 	}
 }

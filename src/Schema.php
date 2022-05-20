@@ -16,7 +16,7 @@ use Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException;
 /**
  * Configuration schema class.
  */
-class Schema extends Database implements Stringable, Serializable
+class Schema implements Stringable, Serializable
 {
 	use HasEncryptedValues;
 	use HasSharedMemoryCache;
@@ -305,7 +305,7 @@ class Schema extends Database implements Stringable, Serializable
 	 * @param  bool    $encrypted
 	 * @return \Ordnael\Configuration\Schema
 	 */
-	protected static function create(string $key, $val, bool $encrypted = false)
+	final public static function create(string $key, $val, bool $encrypted = false)
 	{
 		if ($encrypted) $val = self::encrypt($val);
 
