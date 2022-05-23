@@ -23,12 +23,12 @@ trait HasMultiGrammar
 				case 'mysql':
 				case 'mariadb':
 					$statement .= <<<EOF
-					CREATE TABLE IF NOT EXISTS \"{$name}\" (
-						\"id\" INT UNSIGNED NOT NULL AUTO_INCREMENT,
-						\"key\" VARCHAR(255) NOT NULL UNIQUE,
-						\"value\" TEXT,
-						\"encrypted\" TINYINT(1) DEFAULT '0' CHECK( \"encrypted\" = '0' OR \"encrypted\" = '1'),
-						PRIMARY KEY( \"id\" )
+					CREATE TABLE IF NOT EXISTS `{$name}` (
+						`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+						`key` VARCHAR(255) NOT NULL UNIQUE,
+						`value` TEXT,
+						`encrypted` TINYINT(1) DEFAULT '0' CHECK( `encrypted` = '0' OR `encrypted` = '1'),
+						PRIMARY KEY( `id` )
 					);
 					EOF;
 					break;
