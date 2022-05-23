@@ -107,6 +107,7 @@ class Connector implements ConnectorInterface
 		$this->port = getenv('RA_CONFIG_DB_PORT', true) ?: null;
 
 		$this->connection = $this->connect();
+		$this->connection->exec('SET sql_mode="ANSI_QUOTES";');
 	}
 
 	/**

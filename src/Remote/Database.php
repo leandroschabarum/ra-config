@@ -46,27 +46,7 @@ class Database extends Connector implements CrudInterface
 	 */
 	public function migrate(bool $fresh = false)
 	{
-		switch ($this->type) {
-			case 'mysql':
-			case 'mariadb':
-				$statement = self::createMySqlTableStatement($this->table, $fresh);
-				break;
-
-			case 'pgsql':
-				$statement = self::createPostgreSqlTableStatement($this->table, $fresh);
-				break;
-
-			case 'sqlsrv':
-				$statement = self::createSqlServerTableStatement($this->table, $fresh);
-				break;
-
-			case 'sqlite':
-				$statement = self::createSqliteTableStatement($this->table, $fresh);
-				break;
-			
-			default:
-				$statement = false;
-		}
+		$statement = self::createTableStatement($this->type, $this->table, $fresh);
 
 		if ($statement) return self::getConnector()->connection()
 			->exec(self::keepHistory($statement)) !== false;
@@ -75,35 +55,18 @@ class Database extends Connector implements CrudInterface
 	}
 
 	/**
-	 * Read configuration key.
+	 * Convert mixed values to string for database storage.
 	 * 
-	 * @param  string  $key
-	 * @return \Ordnael\Configuration\Schema|null
-	 */
-	public function select(string $key)
-	{
-		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
-
-		$statement = "SELECT `key`, `value`, `encrypted` FROM {$this->table} WHERE `key` = '{$key}';";
-
-		$result = self::getConnector()->connection()
-		->query(self::keepHistory($statement))->fetch(PDO::FETCH_NUM);
-
-		// Convert to Schema object
-		return ! empty($result) ? Schema::create(...$result) : null;
-	}
-
-	/**
-	 * Create configuration key/value pair.
+	 * @param  mixed  $value
+	 * @return string
 	 * 
-	 * @param  string  $key
-	 * @return \Ordnael\Configuration\Schema|null
+	 * @throws \Exception
 	 */
-	public function insert(string $key, $value)
+	protected function toString($value)
 	{
-		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+		$type = gettype($value);
 
-		switch (gettype($value)) {
+		switch ($type) {
 			case 'string':
 			case 'integer':
 			case 'double':
@@ -122,11 +85,42 @@ class Database extends Connector implements CrudInterface
 				break;
 			
 			default:
-				// code...
-				break;
+				throw new Exception("Unable to convert {$type} to string.");
 		}
 
-		$statement = "INSERT INTO {$this->table} (`key`, `value`, `encrypted`) VALUES ('{$key}', '{$value}', '0');";
+		return $value;
+	}
+
+	/**
+	 * Read configuration key.
+	 * 
+	 * @param  string  $key
+	 * @return \Ordnael\Configuration\Schema|null
+	 */
+	public function select(string $key)
+	{
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
+		$statement = $this->createSelectStatement($this->table, $key);
+
+		$result = self::getConnector()->connection()
+		->query(self::keepHistory($statement))->fetch(PDO::FETCH_NUM);
+
+		// Transform to Schema object
+		return ! empty($result) ? Schema::create(...$result) : null;
+	}
+
+	/**
+	 * Create configuration key/value pair.
+	 * 
+	 * @param  string  $key
+	 * @return int|bool
+	 */
+	public function insert(string $key, $value)
+	{
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
+		$statement = $this->createInsertStatement($this->table, $key, $this->toString($value));
 
 		if (self::getConnector()->connection()->exec(self::keepHistory($statement)) !== false) {
 			return (int) self::getConnector()->connection()->lastInsertId('id');
@@ -143,7 +137,12 @@ class Database extends Connector implements CrudInterface
 	 */
 	public function update(string $key, $value)
 	{
-		//
+		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
+
+		$statement = $this->createUpdateStatement($this->table, $key, $this->toString($value));
+
+		return self::getConnector()->connection()
+		->exec(self::keepHistory($statement)) !== false;
 	}
 
 	/**
@@ -156,7 +155,7 @@ class Database extends Connector implements CrudInterface
 	{
 		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
 
-		$statement = "DELETE FROM {$this->table} WHERE `key` = '{$key}';";
+		$statement = $this->createDeleteStatement($this->table, $key);
 
 		return self::getConnector()->connection()
 		->exec(self::keepHistory($statement)) !== false;

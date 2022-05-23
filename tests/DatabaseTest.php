@@ -40,6 +40,20 @@ final class DatabaseTest extends TestCase
 	}
 
 	/**
+	 * @testdox Database can update data.
+	 */
+	public function testDatabaseUpdate()
+	{
+		$db = new Database();
+		
+		$ok = $db->update('app.name', ['x' => 11, 'y' => 17]);
+		$db->close();
+
+		$this->assertIsBool($ok);
+		$this->assertTrue($ok);
+	}
+
+	/**
 	 * @testdox Database can select data.
 	 */
 	public function testDatabaseSelect()
