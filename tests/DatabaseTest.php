@@ -58,10 +58,20 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseSelect()
 	{
+		$n = 1000;
+		$start_time = microtime(true);
+
 		$db = new Database();
 		
-		$data = $db->select('app.name');
+		for ($i=0; $i < $n; $i++) {
+			$data = $db->select('app.name');
+		}
+
 		$db->close();
+		$end_time = microtime(true);
+
+		$execution_time = ($end_time - $start_time);
+		echo "\t# Total time for {$n} SELECT statements: {$execution_time}s\n"; // DEBUG
 
 		$this->assertInstanceOf(Schema::class, $data);
 		echo "\n\t{$data}\n\n"; // Visualization only
@@ -86,6 +96,7 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseQueryHistory()
 	{
+		$this->markTestSkipped();
 		$this->assertNotEmpty(Database::getHistory());
 
 		print_r("\n" . implode("\n\n", Database::getHistory()));
