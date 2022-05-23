@@ -62,7 +62,7 @@ class Database extends Connector implements CrudInterface
 	 * 
 	 * @throws \Exception
 	 */
-	protected function toString($value)
+	public function toString($value)
 	{
 		$type = gettype($value);
 
