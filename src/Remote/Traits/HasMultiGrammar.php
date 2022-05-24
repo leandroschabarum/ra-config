@@ -96,7 +96,7 @@ trait HasMultiGrammar
 	 * @param  string  $encrypted
 	 * @return string
 	 */
-	protected function createInsertStatement(string $table, string $key, $value, string $encrypted = '0')
+	protected function createInsertStatement(string $table, string $key, $value, string $encrypted)
 	{
 		return "INSERT INTO {$table} (\"key\", \"value\", \"encrypted\") VALUES ('{$key}', '{$value}', '{$encrypted}');";
 	}
@@ -110,7 +110,7 @@ trait HasMultiGrammar
 	 * @param  string  $encrypted
 	 * @return string
 	 */
-	protected function createUpdateStatement(string $table, string $key, $value, string $encrypted = '0')
+	protected function createUpdateStatement(string $table, string $key, $value, string $encrypted)
 	{
 		return "UPDATE {$table} SET \"value\" = '{$value}', \"encrypted\" = '{$encrypted}' WHERE \"key\" = '{$key}';";
 	}

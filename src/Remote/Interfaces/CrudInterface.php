@@ -2,6 +2,8 @@
 
 namespace Ordnael\Configuration\Remote\Interfaces;
 
+use Ordnael\Configuration\Schema;
+
 interface CrudInterface
 {
 	/**
@@ -15,18 +17,18 @@ interface CrudInterface
 	/**
 	 * Method to create configuration key/value pair.
 	 * 
-	 * @param  string  $key
-	 * @return \Ordnael\Configuration\Schema|null
+	 * @param  @param  \Ordnael\Configuration\Schema  $schema
+	 * @return int|bool
 	 */
-	public function insert(string $key, $value);
+	public function insert(Schema $schema);
 
 	/**
 	 * Method to update value from configuration key.
 	 * 
-	 * @param  string  $key
+	 * @param  \Ordnael\Configuration\Schema  $schema
 	 * @return bool
 	 */
-	public function update(string $key, $value);
+	public function update(Schema $schema);
 
 	/**
 	 * Method to delete configuration key/value pair.

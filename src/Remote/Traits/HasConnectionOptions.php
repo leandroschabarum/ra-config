@@ -12,7 +12,7 @@ trait HasConnectionOptions
 	 * @var array<string, mixed>
 	 */
 	private $options = [
-		'DEFAULT' => [
+		'default' => [
 			PDO::ATTR_CASE              => PDO::CASE_NATURAL,
 			PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_ORACLE_NULLS      => PDO::NULL_NATURAL,
@@ -27,17 +27,15 @@ trait HasConnectionOptions
 	 * @param  string  $driver
 	 * @return array<string, mixed>
 	 */
-	public function getOptions(string $driver = 'DEFAULT')
+	public function getOptions(string $driver = 'default')
 	{
-		$driver = strtoupper($driver);
-
 		switch ($driver) {
-			case 'MYSQL':
-				return $this->options['DEFAULT'];
+			case 'mysql':
+				return $this->options['default'];
 
-			case 'PGSQL':
-			case 'SQLITE':
-			case 'SQLSRV':
+			case 'pgsql':
+			case 'sqlite':
+			case 'sqlsrv':
 				// code...
 				break;
 		}

@@ -55,43 +55,6 @@ class Database extends Connector implements CrudInterface
 	}
 
 	/**
-	 * Convert mixed values to string for database storage.
-	 * 
-	 * @param  mixed  $value
-	 * @return string
-	 * 
-	 * @throws \Exception
-	 */
-	public function toString($value)
-	{
-		$type = gettype($value);
-
-		switch ($type) {
-			case 'string':
-			case 'integer':
-			case 'double':
-				break;
-
-			case 'NULL':
-				$value = 'NULL';
-				break;
-
-			case 'boolean':
-				$value = $value ? '1' : '0';
-				break;
-
-			case 'array':
-				$value = json_encode($value);
-				break;
-			
-			default:
-				throw new Exception("Unable to convert {$type} to string.");
-		}
-
-		return $value;
-	}
-
-	/**
 	 * Read configuration key.
 	 * 
 	 * @param  string  $key
@@ -106,21 +69,23 @@ class Database extends Connector implements CrudInterface
 		$result = self::getConnector()->connection()
 		->query(self::keepHistory($statement))->fetch(PDO::FETCH_NUM);
 
-		// Transform to Schema object
-		return ! empty($result) ? Schema::create(...$result) : null;
+		return ! empty($result) ? Schema::make(...$result) : null;
 	}
 
 	/**
 	 * Create configuration key/value pair.
 	 * 
-	 * @param  string  $key
+	 * @param  \Ordnael\Configuration\Schema  $schema
 	 * @return int|bool
 	 */
-	public function insert(string $key, $value)
+	public function insert(Schema $schema)
 	{
-		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
-
-		$statement = $this->createInsertStatement($this->table, $key, $this->toString($value));
+		$statement = $this->createInsertStatement(
+			$this->table,
+			$schema->key(),
+			$schema->value(false),
+			$schema->encrypted() ? '1' : '0'
+		);
 
 		if (self::getConnector()->connection()->exec(self::keepHistory($statement)) !== false) {
 			return (int) self::getConnector()->connection()->lastInsertId('id');
@@ -132,14 +97,17 @@ class Database extends Connector implements CrudInterface
 	/**
 	 * Update value from configuration key.
 	 * 
-	 * @param  string  $key
+	 * @param  \Ordnael\Configuration\Schema  $schema
 	 * @return bool
 	 */
-	public function update(string $key, $value)
+	public function update(Schema $schema)
 	{
-		if (! Schema::isValidKey($key)) throw new InvalidSchemaKeyException($key);
-
-		$statement = $this->createUpdateStatement($this->table, $key, $this->toString($value));
+		$statement = $this->createUpdateStatement(
+			$this->table,
+			$schema->key(),
+			$schema->value(false),
+			$schema->encrypted() ? '1' : '0'
+		);
 
 		return self::getConnector()->connection()
 		->exec(self::keepHistory($statement)) !== false;

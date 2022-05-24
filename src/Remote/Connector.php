@@ -180,7 +180,7 @@ class Connector implements ConnectorInterface
 	 * 
 	 * @return \PDO
 	 * 
-	 * @throws \Exception
+	 * @throws \Ordnael\Configuration\Exceptions\UnavailableConnectionException
 	 */
 	protected function connection()
 	{

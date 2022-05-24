@@ -33,9 +33,9 @@ trait HasEncryptedValues
 		$key_size = SODIUM_CRYPTO_SECRETBOX_KEYBYTES ?? 32;
 
 		if (is_string($key)) {
-			// Case when base64 key string is a passed in parameter
+			// Case when base64 key string is passed in as parameter
 			if (strlen($key) > $key_size) self::$secret_key = base64_decode($key);
-			// Case when bytes key string is a passed in parameter
+			// Case when bytes key string is passed in as parameter
 			if (strlen($key) == $key_size) self::$secret_key = $key;
 
 			return strlen($key) >= $key_size ? true : false;
@@ -62,7 +62,7 @@ trait HasEncryptedValues
 	}
 
 	/**
-	 * Encryption method for configuration values.
+	 * Encryption method for string values.
 	 * 
 	 * @param  string  $data
 	 * @return string
@@ -76,7 +76,7 @@ trait HasEncryptedValues
 	}
 
 	/**
-	 * Decryption method for configuration values.
+	 * Decryption method for string values.
 	 * 
 	 * @param  string  $data
 	 * @return mixed

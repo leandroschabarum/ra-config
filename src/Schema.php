@@ -5,6 +5,7 @@ namespace Ordnael\Configuration;
 use Stringable;
 use Serializable;
 use JsonException;
+use InvalidArgumentException;
 use Ordnael\Configuration\Remote\Database;
 use Ordnael\Configuration\Traits\HasEncryptedValues;
 use Ordnael\Configuration\Traits\HasSharedMemoryCache;
@@ -51,6 +52,13 @@ class Schema implements Stringable, Serializable
 	 * @var mixed
 	 */
 	private $value;
+
+	/**
+	 * Stores custom attributes for the object.
+	 * 
+	 * @var array<string, mixed>
+	 */
+	protected $attributes = [];
 
 	/**
 	 * Static variable to store schema class name.
@@ -107,21 +115,12 @@ class Schema implements Stringable, Serializable
 	 * Special method to set object attributes.
 	 * 
 	 * @param  string  $attr
-	 * @param  mixed   $val
-	 * @return mixed
-	 * 
-	 * @throws \Ordnael\Configuration\Exceptions\SchemaFieldNotFoundException
+	 * @param  mixed   $value
+	 * @return void
 	 */
-	public function __set(string $attr, $val)
+	public function __set(string $attr, $value)
 	{
-		// Attributes allowed to be set by others
-		$allowed = [];
-
-		if (in_array($attr, $allowed)) {
-			$this->{$attr} = $val;
-		} else {
-			throw new SchemaFieldNotFoundException($attr);
-		}
+		$this->attributes[$attr] = $value;
 	}
 
 	/**
@@ -134,13 +133,8 @@ class Schema implements Stringable, Serializable
 	 */
 	public function __get(string $attr)
 	{
-		// Attributes not allowed to be retrieved by others
-		$not_allowed = ['value'];
-
-		if (in_array($attr, self::fields()) && ! in_array($attr, $not_allowed)) {
-			return $this->{$attr};
-		}
-
+		if (array_key_exists($attr, $this->attributes)) return $this->attributes[$attr];
+		
 		throw new SchemaFieldNotFoundException($attr);
 	}
 
@@ -227,16 +221,47 @@ class Schema implements Stringable, Serializable
 	}
 
 	/**
+	 * Method to return object's context.
+	 * 
+	 * @return string
+	 */
+	final public function context()
+	{
+		return $this->context;
+	}
+
+	/**
+	 * Method to return object's full key path.
+	 * 
+	 * @param  bool  $full
+	 * @return string
+	 */
+	final public function key(bool $full = true)
+	{
+		return $full ? "{$this->context}.{$this->key}" : $this->key;
+	}
+
+	/**
 	 * Method to return object's configuration value.
 	 * 
 	 * @param  bool  $decrypt
 	 * @return mixed
 	 */
-	protected function value(bool $decrypt = true)
+	final public function value(bool $decrypt = true)
 	{
 		if ($decrypt && $this->encrypted) return self::decrypt($this->value);
 
 		return $this->value;
+	}
+
+	/**
+	 * Method to return if object's value is encrypted.
+	 * 
+	 * @return bool
+	 */
+	final public function encrypted()
+	{
+		return $this->encrypted;
 	}
 
 	/**
@@ -246,7 +271,7 @@ class Schema implements Stringable, Serializable
 	 * 
 	 * @throws \Ordnael\Configuration\Exceptions\SchemaFailedCacheException
 	 */
-	protected function dropSchemaCache()
+	public function dropSchemaCache()
 	{
 		if (! $this->purgeCache()) {
 			throw new SchemaFailedCacheException(
@@ -272,21 +297,6 @@ class Schema implements Stringable, Serializable
 	}
 
 	/**
-	 * Returns configuration schema fields.
-	 * 
-	 * @return array<int, string>
-	 */
-	final public static function fields()
-	{
-		return [
-			'encrypted',
-			'context',
-			'key',
-			'value'
-		];
-	}
-
-	/**
 	 * Static method to validate if string is a valid key.
 	 * 
 	 * @param  string  $key
@@ -301,14 +311,54 @@ class Schema implements Stringable, Serializable
 	 * Static method to create new configuration schema entry.
 	 * 
 	 * @param  string  $key
-	 * @param  mixed   $val
-	 * @param  bool    $encrypted
+	 * @param  mixed   $value
+	 * @param  mixed   $encrypted
 	 * @return \Ordnael\Configuration\Schema
 	 */
-	final public static function create(string $key, $val, bool $encrypted = false)
+	final public static function make(string $key, $value, $encrypted = false)
 	{
-		if ($encrypted) $val = self::encrypt($val);
+		$value = self::prepareForStorage($value);
+		$encrypted = boolval($encrypted);
 
-		return new static::$schema_class($key, $val, $encrypted);
+		if ($encrypted) $value = self::encrypt($value);
+
+		return new static::$schema_class($key, $value, $encrypted);
+	}
+
+	/**
+	 * Convert mixed values to string for database storage.
+	 * 
+	 * @param  mixed  $value
+	 * @return string
+	 * 
+	 * @throws \Exception
+	 */
+	protected static function prepareForStorage($value)
+	{
+		$type = gettype($value);
+
+		switch ($type) {
+			case 'string':
+			case 'integer':
+			case 'double':
+				break;
+
+			case 'NULL':
+				$value = 'NULL';
+				break;
+
+			case 'boolean':
+				$value = $value ? '1' : '0';
+				break;
+
+			case 'array':
+				$value = json_encode($value);
+				break;
+			
+			default:
+				throw new InvalidArgumentException("Unable to process {$type} to string.");
+		}
+
+		return $value;
 	}
 }

@@ -32,8 +32,9 @@ final class DatabaseTest extends TestCase
 	public function testDatabaseInsert()
 	{
 		$db = new Database();
+		$schema = Schema::make('app.name', ['x' => 10, 'y' => 17]);
 		
-		$id = $db->insert('app.name', ['x' => 10, 'y' => 17]);
+		$id = $db->insert($schema);
 		$db->close();
 
 		$this->assertIsInt($id);
@@ -45,8 +46,9 @@ final class DatabaseTest extends TestCase
 	public function testDatabaseUpdate()
 	{
 		$db = new Database();
+		$schema = Schema::make('app.name', ['x' => 11, 'y' => 17]);
 		
-		$ok = $db->update('app.name', ['x' => 11, 'y' => 17]);
+		$ok = $db->update($schema);
 		$db->close();
 
 		$this->assertIsBool($ok);
@@ -58,7 +60,7 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseSelect()
 	{
-		$n = 1000;
+		$n = 1;
 		$start_time = microtime(true);
 
 		$db = new Database();
@@ -71,7 +73,7 @@ final class DatabaseTest extends TestCase
 		$end_time = microtime(true);
 
 		$execution_time = ($end_time - $start_time);
-		echo "\t# Total time for {$n} SELECT statements: {$execution_time}s\n"; // DEBUG
+		echo "\t# Total time for {$n} SELECT statement: {$execution_time}s\n"; // DEBUG
 
 		$this->assertInstanceOf(Schema::class, $data);
 		echo "\n\t{$data}\n\n"; // Visualization only
@@ -96,9 +98,8 @@ final class DatabaseTest extends TestCase
 	 */
 	public function testDatabaseQueryHistory()
 	{
-		$this->markTestSkipped();
 		$this->assertNotEmpty(Database::getHistory());
 
-		print_r("\n" . implode("\n\n", Database::getHistory()));
+		// print_r("\n" . implode("\n\n", Database::getHistory()));
 	}
 }
